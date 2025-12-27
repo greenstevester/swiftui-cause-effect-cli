@@ -31,6 +31,50 @@ type Result struct {
 	DotPath     string
 }
 
+// AnalysisResult contains the parsed graph and metadata for further processing
+type AnalysisResult struct {
+	Graph       *graph.Graph
+	InputDir    string
+	FilesParsed int
+	Hints       []string
+}
+
+// ParseTrace parses a trace or export directory and returns the graph for further analysis
+func ParseTrace(opts Options) (*AnalysisResult, error) {
+	if opts.XcTrace == nil {
+		opts.XcTrace = xctrace.New()
+	}
+	inputInfo, err := os.Stat(opts.Input)
+	if err != nil {
+		return nil, err
+	}
+
+	inputDir := opts.Input
+	if !inputInfo.IsDir() && strings.HasSuffix(strings.ToLower(opts.Input), ".trace") {
+		tmpDir := filepath.Join(filepath.Dir(opts.Input), "exported")
+		if err := export.ExportTrace(opts.XcTrace, export.Options{TracePath: opts.Input, OutDir: tmpDir, Format: "auto"}); err != nil {
+			return nil, err
+		}
+		inputDir = tmpDir
+	}
+
+	g := graph.New()
+	stats := &summaryStats{}
+	if err := parseDirectory(inputDir, g, stats); err != nil {
+		return nil, err
+	}
+	if len(g.Nodes) == 0 || len(g.Edges) == 0 {
+		return nil, ErrNoData
+	}
+
+	return &AnalysisResult{
+		Graph:       g,
+		InputDir:    inputDir,
+		FilesParsed: stats.FilesParsed,
+		Hints:       stats.Hints,
+	}, nil
+}
+
 func Summarize(opts Options) (Result, error) {
 	if opts.XcTrace == nil {
 		opts.XcTrace = xctrace.New()
