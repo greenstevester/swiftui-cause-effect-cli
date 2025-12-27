@@ -1,14 +1,15 @@
 ---
 name: swiftuice-analyze
-description: This skill should be used when the user asks to review SwiftUI code for performance issues, optimize SwiftUI views, fix re-render problems, or analyze Instruments traces. It can review code directly for anti-patterns OR analyze trace data for deeper insights.
+description: This skill should be used when the user asks to review SwiftUI code for performance issues, optimize SwiftUI views, fix re-render problems, record a performance trace, or analyze Instruments traces. It can review code directly, help record traces, and analyze trace data.
 ---
 
 # SwiftUI Performance Analysis
 
-This skill helps identify and fix SwiftUI performance anti-patterns. It works in two modes:
+This skill helps identify and fix SwiftUI performance anti-patterns. It supports the full workflow:
 
-1. **Code Review Mode** (no trace needed) - Review Swift files for common anti-patterns
-2. **Trace Analysis Mode** - Deep analysis with actual performance data from Instruments
+1. **Code Review** (no trace needed) - Review Swift files for common anti-patterns
+2. **Record Trace** - Help user record an Instruments trace for their app
+3. **Analyze Trace** - Deep analysis with actual performance data
 
 ## When to Use This Skill
 
@@ -16,6 +17,8 @@ Use this skill when:
 - User asks to review SwiftUI code for performance issues
 - User wants to optimize SwiftUI views
 - User reports slow UI or excessive re-renders
+- User wants to record a SwiftUI performance trace
+- User wants help profiling their iOS/macOS app
 - User has an Instruments trace file to analyze
 - User mentions @State, @ObservedObject, view updates, or re-renders
 
@@ -77,23 +80,72 @@ struct UserList: View {
 }
 ```
 
-## Mode 2: Trace Analysis (Deeper Insights)
+## Mode 2: Record & Analyze Trace (Deeper Insights)
 
-For quantitative data on actual re-render counts and update chains, use trace analysis.
+For quantitative data on actual re-render counts and update chains, help the user record and analyze a trace.
 
-### Prerequisites for Trace Analysis
-
-1. **swiftuice installed**: `go install github.com/greenstevester/swiftui-cause-effect-cli/cmd/swiftuice@latest`
-2. **macOS with Xcode**
-3. **A trace file** (see Recording below)
-
-### Recording a Trace
+### Step 1: Check Prerequisites
 
 ```bash
-swiftuice record -app com.yourcompany.yourapp -time 15s -out trace.trace
+# Check if swiftuice is installed
+swiftuice version
+
+# If not installed:
+go install github.com/greenstevester/swiftui-cause-effect-cli/cmd/swiftuice@latest
 ```
 
-Or: Xcode → Open Developer Tool → Instruments → SwiftUI template → Record → Save.
+### Step 2: Find the App Bundle ID
+
+Help the user find their app's bundle ID:
+
+```bash
+# From Xcode project
+grep -r "PRODUCT_BUNDLE_IDENTIFIER" *.xcodeproj/project.pbxproj 2>/dev/null | head -1
+
+# Or check the Info.plist
+find . -name "Info.plist" -exec grep -A1 "CFBundleIdentifier" {} \; 2>/dev/null | head -5
+
+# If app is running in simulator
+xcrun simctl listapps booted 2>/dev/null | grep -A1 CFBundleIdentifier | head -10
+```
+
+### Step 3: Record the Trace
+
+Guide the user through recording:
+
+```bash
+# Record for 15 seconds - user should interact with the app during this time
+swiftuice record -app <BUNDLE_ID> -time 15s -out trace.trace
+```
+
+**Important instructions for the user:**
+1. Make sure the app is running on a simulator or device
+2. During the 15 seconds, perform the UI actions that feel slow
+3. Focus on the specific screens/flows with performance issues
+
+### Step 4: Analyze the Trace
+
+```bash
+# Analyze with source correlation
+swiftuice analyze -in trace.trace -source . -stdout
+```
+
+### Alternative: Manual Recording in Instruments
+
+If `swiftuice record` doesn't work, guide the user through Instruments:
+
+1. Open Instruments: **Xcode → Open Developer Tool → Instruments**
+2. Choose the **SwiftUI** template
+3. Select target device/simulator and app
+4. Click **Record** (red button)
+5. Interact with the app for 10-15 seconds
+6. Click **Stop**
+7. **File → Save** as `.trace` file
+
+Then analyze:
+```bash
+swiftuice analyze -in /path/to/saved.trace -source . -stdout
+```
 
 ## Workflow
 

@@ -4,8 +4,9 @@ A Claude Code plugin for SwiftUI performance analysis. Review code for anti-patt
 
 ## Features
 
-- **Code Review Mode** - Review SwiftUI views for anti-patterns immediately (no trace required)
-- **Trace Analysis Mode** - Deep analysis with actual performance data from Instruments
+- **Code Review** - Review SwiftUI views for anti-patterns (no trace required)
+- **Record Trace** - Guided workflow to record an Instruments trace
+- **Analyze Trace** - Deep analysis with actual performance data
 - **Skill: swiftuice-analyze** - Auto-triggers on SwiftUI performance questions
 - **Command: /analyze-swiftui** - Quick analysis of traces in current project
 - **Reference docs** - Detailed fix patterns with before/after code examples
@@ -76,9 +77,19 @@ The skill will scan your Swift files and identify issues like:
 - Overly broad @ObservedObject usage
 - Timer/animation cascades
 
-### Trace Analysis (Deeper Insights)
+### Record a Trace (For Deeper Analysis)
 
-If you have a trace file:
+If you want quantitative data on actual re-render counts:
+
+- "Help me record a SwiftUI performance trace"
+- "Profile my app for performance issues"
+- "I want to capture a trace of my app"
+
+The skill will guide you through finding your bundle ID and recording.
+
+### Analyze a Trace
+
+If you already have a trace file:
 
 - "Analyze the SwiftUI performance in trace.trace"
 - "What's causing the re-renders in this trace?"
