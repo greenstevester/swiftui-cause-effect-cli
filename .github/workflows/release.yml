@@ -1,0 +1,193 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'examples/**'
+      - '.gitignore'
+      - 'LICENSE'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+
+env:
+  GO_VERSION: '1.22'
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Install Task
+        uses: arduino/setup-task@v2.0.0
+        with:
+          version: 3.x
+
+      - name: Run tests
+        run: task test
+
+      - name: Run linters
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: latest
+          args: --timeout=5m
+
+  release:
+    name: Release
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ env.GO_VERSION }}
+        cache: true
+
+    - name: Install cosign
+      uses: sigstore/cosign-installer@v3
+
+    - name: Generate tag
+      id: tag
+      run: |
+        # Fetch all tags to ensure we have the latest
+        echo "Fetching all tags..."
+        git fetch --tags --force
+
+        # List all existing tags for debugging
+        echo "Existing tags:"
+        git tag -l 'v*' | sort -V || echo "No tags found"
+
+        # Get the latest tag using version sort
+        LATEST_TAG=$(git tag -l 'v*' | sort -V | tail -n1)
+        if [ -z "$LATEST_TAG" ]; then
+          echo "No existing tags found, starting from v0.0.0"
+          LATEST_TAG="v0.0.0"
+        fi
+        echo "Latest tag: $LATEST_TAG"
+
+        # Extract version numbers
+        VERSION=$(echo $LATEST_TAG | sed 's/^v//')
+        IFS='.' read -ra VERSION_PARTS <<< "$VERSION"
+        MAJOR=${VERSION_PARTS[0]:-0}
+        MINOR=${VERSION_PARTS[1]:-0}
+        PATCH=${VERSION_PARTS[2]:-0}
+
+        echo "Current version: ${MAJOR}.${MINOR}.${PATCH}"
+
+        # Determine version bump based on commit messages
+        COMMIT_MSG=$(git log -1 --pretty=%B)
+        if echo "$COMMIT_MSG" | grep -qE "BREAKING CHANGE|^feat!:"; then
+          echo "Breaking change detected, incrementing major version"
+          MAJOR=$((MAJOR + 1))
+          MINOR=0
+          PATCH=0
+        elif echo "$COMMIT_MSG" | grep -qE "^feat:"; then
+          echo "Feature detected, incrementing minor version"
+          MINOR=$((MINOR + 1))
+          PATCH=0
+        else
+          echo "Patch/fix detected, incrementing patch version"
+          PATCH=$((PATCH + 1))
+        fi
+
+        NEW_TAG="v${MAJOR}.${MINOR}.${PATCH}"
+
+        # Keep incrementing patch until we find an unused tag
+        ATTEMPTS=0
+        MAX_ATTEMPTS=100
+        while git rev-parse "$NEW_TAG" >/dev/null 2>&1; do
+          echo "Tag $NEW_TAG already exists, incrementing patch..."
+          PATCH=$((PATCH + 1))
+          NEW_TAG="v${MAJOR}.${MINOR}.${PATCH}"
+          ATTEMPTS=$((ATTEMPTS + 1))
+          if [ $ATTEMPTS -ge $MAX_ATTEMPTS ]; then
+            echo "Error: Unable to find available tag after $MAX_ATTEMPTS attempts"
+            exit 1
+          fi
+        done
+
+        echo "Generated new tag: $NEW_TAG"
+        echo "tag=$NEW_TAG" >> $GITHUB_OUTPUT
+        echo "version=${MAJOR}.${MINOR}.${PATCH}" >> $GITHUB_OUTPUT
+
+    - name: Display release information
+      env:
+        NEW_TAG: ${{ steps.tag.outputs.tag }}
+        NEW_VERSION: ${{ steps.tag.outputs.version }}
+      run: |
+        echo "Preparing to release version $NEW_TAG"
+        echo "Version: $NEW_VERSION"
+        echo ""
+        echo "Recent commits since last tag:"
+        git log $(git describe --tags --abbrev=0 2>/dev/null || echo "")..HEAD --oneline || echo "First release"
+
+    - name: Create and push tag
+      env:
+        NEW_TAG: ${{ steps.tag.outputs.tag }}
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+
+        # Double-check the tag doesn't exist before creating
+        if git rev-parse "$NEW_TAG" >/dev/null 2>&1; then
+          echo "Error: Tag $NEW_TAG already exists!"
+          echo "Existing tags:"
+          git tag -l 'v*' | sort -V
+          exit 1
+        fi
+
+        echo "Creating tag $NEW_TAG..."
+        git tag -a "$NEW_TAG" -m "Release $NEW_TAG"
+
+        echo "Pushing tag to origin..."
+        git push origin "$NEW_TAG"
+
+        echo "Tag $NEW_TAG created and pushed successfully!"
+
+    - name: Run GoReleaser
+      uses: goreleaser/goreleaser-action@v6
+      with:
+        distribution: goreleaser
+        version: "~> v2"
+        args: release --clean
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  notify:
+    name: Notify
+    runs-on: ubuntu-latest
+    needs: [release]
+    if: always()
+
+    steps:
+    - name: Notify on success
+      if: needs.release.result == 'success'
+      run: echo "Release completed successfully!"
+
+    - name: Notify on failure
+      if: needs.release.result == 'failure'
+      run: echo "Release failed!"

@@ -1,0 +1,56 @@
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+
+gomod:
+  proxy: true
+  env:
+    - GOPROXY=https://proxy.golang.org,direct
+    - GOSUMDB=sum.golang.org
+    - GOPRIVATE=github.com/greenstevester/swiftui-cause-effect-cli
+  mod: mod
+
+builds:
+  - main: ./cmd/swiftuice
+    binary: swiftuice
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - freebsd
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+      - arm
+      - "386"
+    goarm:
+      - "6"
+      - "7"
+    ldflags:
+      - -s -w
+      - -X github.com/greenstevester/swiftui-cause-effect-cli/internal/version.Version={{.Version}}
+      - -X github.com/greenstevester/swiftui-cause-effect-cli/internal/version.Commit={{.Commit}}
+      - -X github.com/greenstevester/swiftui-cause-effect-cli/internal/version.Date={{.CommitDate}}
+      - -X github.com/greenstevester/swiftui-cause-effect-cli/internal/version.BuiltBy=goreleaser
+
+archives:
+  - formats:
+      - binary
+    name_template: "swiftuice_{{ .Tag }}_{{ .Os }}-{{ .Arch }}{{if .Arm}}_{{.Arm}}{{end}}"
+
+checksum:
+  name_template: "checksums.txt"
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
