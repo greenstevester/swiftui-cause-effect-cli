@@ -39,7 +39,18 @@ cp -r claude-plugin/skills/swiftuice-analyze ~/.claude/skills/
 
 ## Prerequisites
 
-The plugin requires the `swiftuice` CLI tool:
+### 1. You Need a Trace File
+
+This plugin analyzes SwiftUI performance data from Instruments traces. **You must record a trace first:**
+
+```bash
+# Record for 15 seconds while interacting with your app
+swiftuice record -app com.yourcompany.yourapp -time 15s -out trace.trace
+```
+
+Or manually: Open Instruments (Xcode → Open Developer Tool → Instruments), select SwiftUI template, record, save.
+
+### 2. Install swiftuice CLI
 
 ```bash
 # Install with Go
@@ -49,7 +60,8 @@ go install github.com/greenstevester/swiftui-cause-effect-cli/cmd/swiftuice@late
 swiftuice version
 ```
 
-Additional requirements:
+### 3. System Requirements
+
 - **macOS** (uses `xcrun xctrace`)
 - **Xcode** with command-line tools installed
 

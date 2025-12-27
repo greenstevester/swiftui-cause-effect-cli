@@ -19,12 +19,27 @@ Use this skill when:
 
 ## Prerequisites
 
-Before using this skill, ensure:
-1. **swiftuice is installed**: Check with `swiftuice version`
-2. **macOS environment**: This tool only works on macOS
-3. **Xcode installed**: Required for `xcrun xctrace`
+Before using this skill, you need:
 
-If swiftuice is not installed, install it:
+1. **A trace file or exported data** - This is required. See "Recording a Trace" below if you don't have one.
+2. **swiftuice installed** - Check with `swiftuice version`
+3. **macOS environment** - This tool only works on macOS
+4. **Xcode installed** - Required for `xcrun xctrace`
+
+### No Trace File Yet?
+
+If you don't have a trace file, record one first:
+
+```bash
+# Record for 15 seconds while interacting with your app
+swiftuice record -app com.yourcompany.yourapp -time 15s -out trace.trace
+```
+
+Or open Instruments manually: Xcode → Open Developer Tool → Instruments → SwiftUI template.
+
+### Installing swiftuice
+
+If swiftuice is not installed:
 ```bash
 go install github.com/greenstevester/swiftui-cause-effect-cli/cmd/swiftuice@latest
 ```
