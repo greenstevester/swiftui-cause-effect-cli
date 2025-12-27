@@ -1,26 +1,30 @@
 ---
 name: swiftuice-analyze
-description: This skill should be used when the user asks to review SwiftUI code for performance issues, optimize SwiftUI views, fix re-render problems, record a performance trace, or analyze Instruments traces. It can review code directly, help record traces, and analyze trace data.
+description: This skill should be used when the user asks to find and fix SwiftUI performance issues, optimize SwiftUI views, fix re-render problems, or analyze why their iOS/macOS app UI is slow. It handles the full workflow from code review to trace analysis.
 ---
 
 # SwiftUI Performance Analysis
 
-This skill helps identify and fix SwiftUI performance anti-patterns. It supports the full workflow:
+This skill helps find and fix SwiftUI performance issues. When triggered, follow this workflow:
 
-1. **Code Review** (no trace needed) - Review Swift files for common anti-patterns
-2. **Record Trace** - Help user record an Instruments trace for their app
-3. **Analyze Trace** - Deep analysis with actual performance data
+## Recommended Workflow
+
+```
+1. Review Code → 2. Record Trace (if needed) → 3. Analyze → 4. Fix
+```
+
+**Start with code review** (immediate results), then offer trace recording for deeper insights.
 
 ## When to Use This Skill
 
-Use this skill when:
-- User asks to review SwiftUI code for performance issues
-- User wants to optimize SwiftUI views
-- User reports slow UI or excessive re-renders
-- User wants to record a SwiftUI performance trace
-- User wants help profiling their iOS/macOS app
-- User has an Instruments trace file to analyze
-- User mentions @State, @ObservedObject, view updates, or re-renders
+Use this skill when user says things like:
+- "Find and fix SwiftUI performance issues"
+- "My app UI is slow/laggy"
+- "Optimize my SwiftUI views"
+- "Fix the re-render issues in my app"
+- "Why is my view updating so much?"
+- "Profile my SwiftUI app"
+- "Help with SwiftUI performance"
 
 ## Mode 1: Code Review (No Trace Required)
 

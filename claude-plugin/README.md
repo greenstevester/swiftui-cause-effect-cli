@@ -1,15 +1,16 @@
 # swiftuice - Claude Code Plugin
 
-A Claude Code plugin for SwiftUI performance analysis. Review code for anti-patterns **without needing a trace file**, or get deeper insights with Instruments trace analysis.
+**Find and fix SwiftUI performance issues** - just ask.
 
-## Features
+## What It Does
 
-- **Code Review** - Review SwiftUI views for anti-patterns (no trace required)
-- **Record Trace** - Guided workflow to record an Instruments trace
-- **Analyze Trace** - Deep analysis with actual performance data
-- **Skill: swiftuice-analyze** - Auto-triggers on SwiftUI performance questions
-- **Command: /analyze-swiftui** - Quick analysis of traces in current project
-- **Reference docs** - Detailed fix patterns with before/after code examples
+Say "find and fix SwiftUI performance issues" and the skill will:
+
+1. **Review your code** for anti-patterns (works immediately)
+2. **Help record a trace** if you want deeper insights
+3. **Analyze and suggest fixes** with before/after code examples
+
+No setup required for code review. Trace recording guided step-by-step.
 
 ## Installation
 
@@ -62,37 +63,28 @@ Just have SwiftUI source files in your project. The skill will review them for a
 
 ## Usage
 
-### Code Review (Recommended Starting Point)
+### Just Ask
 
-Ask the skill to review your SwiftUI code:
+Simply say:
 
-- "Review my SwiftUI views for performance issues"
-- "Check this view for anti-patterns"
-- "Why might my ItemRow be re-rendering too much?"
-- "Optimize the state management in my app"
+> **"Find and fix SwiftUI performance issues"**
 
-The skill will scan your Swift files and identify issues like:
-- Whole object passing
-- Missing Equatable
-- Overly broad @ObservedObject usage
-- Timer/animation cascades
+The skill handles the full workflow:
 
-### Record a Trace (For Deeper Analysis)
+1. **Reviews your code** for anti-patterns (immediate results)
+2. **Offers to record a trace** if you want deeper insights
+3. **Analyzes the data** and suggests fixes with code examples
 
-If you want quantitative data on actual re-render counts:
+### Other Ways to Trigger
 
-- "Help me record a SwiftUI performance trace"
-- "Profile my app for performance issues"
-- "I want to capture a trace of my app"
+- "My app UI is slow"
+- "Optimize my SwiftUI views"
+- "Why is my view re-rendering so much?"
+- "Help with SwiftUI performance"
 
-The skill will guide you through finding your bundle ID and recording.
+### If You Already Have a Trace
 
-### Analyze a Trace
-
-If you already have a trace file:
-
-- "Analyze the SwiftUI performance in trace.trace"
-- "What's causing the re-renders in this trace?"
+- "Analyze trace.trace for performance issues"
 
 ### Using the Command
 
