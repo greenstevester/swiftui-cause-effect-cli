@@ -236,6 +236,27 @@ Options:
   -dot   Graphviz .dot output (default: graph.dot)
 ```
 
+## Claude Code Plugin
+
+A complete Claude Code plugin is included for seamless AI integration:
+
+```bash
+# Install the plugin in Claude Code
+/plugin install github:greenstevester/swiftui-cause-effect-cli/claude-plugin
+```
+
+Or use locally:
+```bash
+claude --plugin-dir /path/to/swiftui-cause-effect-cli/claude-plugin
+```
+
+The plugin provides:
+- **Skill: swiftuice-analyze** - Triggers automatically for SwiftUI performance questions
+- **Command: /analyze-swiftui** - Quick analysis of traces in current project
+- **Reference docs** - Detailed fix patterns and issue documentation
+
+See [`claude-plugin/README.md`](./claude-plugin/README.md) for full documentation.
+
 ## Development
 
 ```bash

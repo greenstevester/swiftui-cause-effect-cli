@@ -1,0 +1,22 @@
+{
+  "name": "swiftuice",
+  "version": "0.2.0",
+  "description": "SwiftUI performance analysis for AI agents. Analyze Instruments traces to detect performance issues, get fix suggestions with code examples, and correlate trace data with source files.",
+  "author": "greenstevester",
+  "repository": "https://github.com/greenstevester/swiftui-cause-effect-cli",
+  "license": "MIT",
+  "keywords": [
+    "swiftui",
+    "performance",
+    "ios",
+    "macos",
+    "instruments",
+    "xcode",
+    "optimization",
+    "profiling"
+  ],
+  "requirements": {
+    "platform": ["darwin"],
+    "tools": ["xcrun", "xctrace"]
+  }
+}
