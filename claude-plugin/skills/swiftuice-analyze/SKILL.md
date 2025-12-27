@@ -1,50 +1,99 @@
 ---
 name: swiftuice-analyze
-description: This skill should be used when the user asks to analyze SwiftUI performance, optimize SwiftUI views, fix SwiftUI re-render issues, or work with Instruments traces for iOS/macOS apps. It provides AI-actionable analysis with issue detection, fix suggestions, and source code correlation.
+description: This skill should be used when the user asks to review SwiftUI code for performance issues, optimize SwiftUI views, fix re-render problems, or analyze Instruments traces. It can review code directly for anti-patterns OR analyze trace data for deeper insights.
 ---
 
-# SwiftUI Performance Analysis with swiftuice
+# SwiftUI Performance Analysis
 
-This skill enables analysis of SwiftUI performance issues using the `swiftuice` CLI tool. It produces structured JSON reports designed for AI consumption, including issue detection, fix suggestions with code examples, and source file correlation.
+This skill helps identify and fix SwiftUI performance anti-patterns. It works in two modes:
+
+1. **Code Review Mode** (no trace needed) - Review Swift files for common anti-patterns
+2. **Trace Analysis Mode** - Deep analysis with actual performance data from Instruments
 
 ## When to Use This Skill
 
 Use this skill when:
-- User asks to analyze SwiftUI performance
-- User has an Instruments trace file (.trace)
-- User wants to optimize SwiftUI view updates
-- User reports excessive re-renders or slow UI
-- User mentions "Cause & Effect" graph from Instruments
-- User wants to find performance anti-patterns in SwiftUI code
+- User asks to review SwiftUI code for performance issues
+- User wants to optimize SwiftUI views
+- User reports slow UI or excessive re-renders
+- User has an Instruments trace file to analyze
+- User mentions @State, @ObservedObject, view updates, or re-renders
 
-## Prerequisites
+## Mode 1: Code Review (No Trace Required)
 
-Before using this skill, you need:
+Review SwiftUI source files directly for performance anti-patterns. This is the fastest way to find issues.
 
-1. **A trace file or exported data** - This is required. See "Recording a Trace" below if you don't have one.
-2. **swiftuice installed** - Check with `swiftuice version`
-3. **macOS environment** - This tool only works on macOS
-4. **Xcode installed** - Required for `xcrun xctrace`
+### What to Look For
 
-### No Trace File Yet?
+Scan Swift files for these anti-patterns:
 
-If you don't have a trace file, record one first:
+| Pattern | Problem | Fix |
+|---------|---------|-----|
+| `@ObservedObject` on large objects | All views re-render on any property change | Use `@Observable` (iOS 17+) or split state |
+| Passing whole model to child views | Unnecessary re-renders when unused properties change | Pass only needed primitives |
+| Timer/animation at parent level | Cascades updates to all children | Isolate to affected view only |
+| Missing `Equatable` on data-driven views | Can't skip unnecessary re-renders | Implement `Equatable` |
+| `@State` for derived values | Redundant state, sync issues | Use computed properties |
+| `@EnvironmentObject` for local state | All consumers re-render together | Scope to minimal views |
+
+### Code Review Process
+
+1. Find SwiftUI view files:
+   ```bash
+   find . -name "*.swift" -exec grep -l "struct.*View" {} \;
+   ```
+
+2. For each view, check:
+   - What state properties does it observe? (`@State`, `@ObservedObject`, `@EnvironmentObject`)
+   - Does it pass whole objects to child views?
+   - Does it have timers or frequent updates?
+   - Could it implement `Equatable`?
+
+3. Apply fixes from `references/fix-patterns.md`
+
+### Example Review
+
+```swift
+// ANTI-PATTERN: Whole object passing
+struct UserList: View {
+    @ObservedObject var viewModel: AppViewModel  // Large object
+
+    var body: some View {
+        ForEach(viewModel.users) { user in
+            UserRow(user: user)  // Passes entire User object
+        }
+    }
+}
+
+// FIXED: Pass only needed data
+struct UserList: View {
+    @ObservedObject var viewModel: AppViewModel
+
+    var body: some View {
+        ForEach(viewModel.users) { user in
+            UserRow(name: user.name, avatarURL: user.avatarURL)
+        }
+    }
+}
+```
+
+## Mode 2: Trace Analysis (Deeper Insights)
+
+For quantitative data on actual re-render counts and update chains, use trace analysis.
+
+### Prerequisites for Trace Analysis
+
+1. **swiftuice installed**: `go install github.com/greenstevester/swiftui-cause-effect-cli/cmd/swiftuice@latest`
+2. **macOS with Xcode**
+3. **A trace file** (see Recording below)
+
+### Recording a Trace
 
 ```bash
-# Record for 15 seconds while interacting with your app
 swiftuice record -app com.yourcompany.yourapp -time 15s -out trace.trace
 ```
 
-Or open Instruments manually: Xcode → Open Developer Tool → Instruments → SwiftUI template.
-
-### Installing swiftuice
-
-If swiftuice is not installed:
-```bash
-go install github.com/greenstevester/swiftui-cause-effect-cli/cmd/swiftuice@latest
-```
-
-Or build from source if the repo is available locally.
+Or: Xcode → Open Developer Tool → Instruments → SwiftUI template → Record → Save.
 
 ## Workflow
 

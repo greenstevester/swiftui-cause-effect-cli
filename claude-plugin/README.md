@@ -1,12 +1,14 @@
 # swiftuice - Claude Code Plugin
 
-A Claude Code plugin for SwiftUI performance analysis. Enables AI agents to analyze Instruments traces, detect performance anti-patterns, and suggest fixes with code examples.
+A Claude Code plugin for SwiftUI performance analysis. Review code for anti-patterns **without needing a trace file**, or get deeper insights with Instruments trace analysis.
 
 ## Features
 
-- **Skill: swiftuice-analyze** - Comprehensive workflow for analyzing SwiftUI performance
+- **Code Review Mode** - Review SwiftUI views for anti-patterns immediately (no trace required)
+- **Trace Analysis Mode** - Deep analysis with actual performance data from Instruments
+- **Skill: swiftuice-analyze** - Auto-triggers on SwiftUI performance questions
 - **Command: /analyze-swiftui** - Quick analysis of traces in current project
-- **Reference docs** - Detailed fix patterns and issue type documentation
+- **Reference docs** - Detailed fix patterns with before/after code examples
 
 ## Installation
 
@@ -39,47 +41,47 @@ cp -r claude-plugin/skills/swiftuice-analyze ~/.claude/skills/
 
 ## Prerequisites
 
-### 1. You Need a Trace File
+### For Code Review Mode (No Trace Required)
 
-This plugin analyzes SwiftUI performance data from Instruments traces. **You must record a trace first:**
+Just have SwiftUI source files in your project. The skill will review them for anti-patterns.
 
-```bash
-# Record for 15 seconds while interacting with your app
-swiftuice record -app com.yourcompany.yourapp -time 15s -out trace.trace
-```
+### For Trace Analysis Mode (Optional, Deeper Insights)
 
-Or manually: Open Instruments (Xcode → Open Developer Tool → Instruments), select SwiftUI template, record, save.
+1. **Install swiftuice CLI**:
+   ```bash
+   go install github.com/greenstevester/swiftui-cause-effect-cli/cmd/swiftuice@latest
+   ```
 
-### 2. Install swiftuice CLI
+2. **Record a trace**:
+   ```bash
+   swiftuice record -app com.yourcompany.yourapp -time 15s -out trace.trace
+   ```
 
-```bash
-# Install with Go
-go install github.com/greenstevester/swiftui-cause-effect-cli/cmd/swiftuice@latest
-
-# Verify installation
-swiftuice version
-```
-
-### 3. System Requirements
-
-- **macOS** (uses `xcrun xctrace`)
-- **Xcode** with command-line tools installed
+3. **System requirements**: macOS with Xcode
 
 ## Usage
 
-### Using the Skill (Automatic)
+### Code Review (Recommended Starting Point)
 
-The skill triggers automatically when you:
-- Ask about SwiftUI performance
-- Mention Instruments traces
-- Want to optimize view updates
-- Report excessive re-renders
+Ask the skill to review your SwiftUI code:
 
-Example prompts:
-- "Analyze the SwiftUI performance in this trace"
-- "Why is my ItemRow view updating so much?"
-- "Help me optimize the cause-effect graph"
-- "Fix the performance issues in my iOS app"
+- "Review my SwiftUI views for performance issues"
+- "Check this view for anti-patterns"
+- "Why might my ItemRow be re-rendering too much?"
+- "Optimize the state management in my app"
+
+The skill will scan your Swift files and identify issues like:
+- Whole object passing
+- Missing Equatable
+- Overly broad @ObservedObject usage
+- Timer/animation cascades
+
+### Trace Analysis (Deeper Insights)
+
+If you have a trace file:
+
+- "Analyze the SwiftUI performance in trace.trace"
+- "What's causing the re-renders in this trace?"
 
 ### Using the Command
 
