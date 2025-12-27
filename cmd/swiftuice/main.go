@@ -55,8 +55,7 @@ Commands:
   export     Export a .trace file into parseable artifacts (XML/JSON/CSV) using xctrace
   summarize  Build a best-effort Cause→State→View graph + a human summary + Graphviz .dot
 
-Run 'swiftuice <command> -h' for command flags.
-`)
+Run 'swiftuice <command> -h' for command flags.`)
 }
 
 func cmdRecord(args []string) int {
