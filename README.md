@@ -1,27 +1,38 @@
-# swiftuice (SwiftUI Cause & Effect CLI)
+# swiftuice - SwiftUI Performance for Claude Code
 
-A standalone CLI to **record**, **export**, and **analyze** data from the **SwiftUI instrument** in Instruments — producing **AI-actionable performance reports** with issue detection, fix suggestions, and source code correlation.
+Find and fix SwiftUI performance issues — just ask Claude.
 
-> Designed for AI agents: The `analyze` command produces structured JSON that enables Claude, GPT, or other AI tools to automatically suggest and implement SwiftUI performance fixes.
+## Quick Start
 
-## How It Works
+**1. Add the marketplace and install:**
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        swiftuice                                │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│   record ──► export ──► analyze ──► AI Agent ──► Code Fixes    │
-│      │          │           │                                   │
-│      ▼          ▼           ▼                                   │
-│   .trace    XML/JSON    analysis.json                           │
-│                         (issues, fixes,                         │
-│                          source correlation)                    │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
+```bash
+/plugin marketplace add greenstevester/swiftui-cause-effect-cli
+/plugin install swiftuice-analyze@greenstevester-swiftui-cause-effect-cli
 ```
 
-The tool builds a **Cause → State → View** relationship graph and detects performance anti-patterns:
+Or use the interactive installer:
+```bash
+/plugin
+```
+Then navigate to **Discover** tab and search for "swiftuice".
+
+**2. Just say:**
+
+> "Find and fix SwiftUI performance issues"
+
+That's it. Claude reviews your code for anti-patterns and suggests fixes with before/after examples.
+
+## What It Does
+
+| Mode | What Happens | Setup Required |
+|------|--------------|----------------|
+| **Code Review** | Scans SwiftUI views for anti-patterns | None — works immediately |
+| **Trace Analysis** | Records runtime data for quantitative insights | CLI + Xcode |
+
+**Start with code review** — no trace file needed. Add trace analysis later for deeper metrics.
+
+## Detected Issues
 
 | Issue Type | Description |
 |------------|-------------|
@@ -31,143 +42,104 @@ The tool builds a **Cause → State → View** relationship graph and detects pe
 | `deep_dependency_chain` | Long update propagation paths |
 | `whole_object_passing` | Model objects causing unnecessary re-renders |
 
-## Requirements
+Each issue includes **suggested fixes** with code examples, effort level, and expected impact.
 
-- **macOS** (required - uses `xcrun`)
-- **Xcode** installed with command line tools
-- **Go 1.22+** (for building from source)
-- **Graphviz** (optional, for rendering `.dot` files)
+## Installation Options
 
-## Install
+### Option 1: Plugin Marketplace (Recommended)
+
+```bash
+/plugin marketplace add greenstevester/swiftui-cause-effect-cli
+/plugin install swiftuice-analyze@greenstevester-swiftui-cause-effect-cli
+```
+
+Or interactively:
+```bash
+/plugin
+```
+
+### Option 2: Project-Level (for teams)
+
+Install to current project only:
+
+```bash
+/plugin install swiftuice-analyze@greenstevester-swiftui-cause-effect-cli --scope project
+```
+
+## Usage
+
+### Just Ask Claude
+
+Say any of these:
+
+- "Find and fix SwiftUI performance issues"
+- "My app UI is slow"
+- "Optimize my SwiftUI views"
+- "Why is my view re-rendering so much?"
+
+Claude will:
+1. Review your SwiftUI code for anti-patterns
+2. Offer to record a trace for deeper insights
+3. Suggest fixes with before/after code examples
+
+### If You Have a Trace File
+
+> "Analyze trace.trace for performance issues"
+
+### Using the Command
+
+```bash
+/swiftuice-analyze
+```
+
+Or with arguments:
+```bash
+/swiftuice-analyze path/to/trace.trace
+```
+
+## Trace Analysis (Optional)
+
+For quantitative data on actual re-render counts and update chains, install the CLI:
+
+### Install CLI
 
 ```bash
 go install github.com/greenstevester/swiftui-cause-effect-cli/cmd/swiftuice@latest
 ```
 
-Or build locally:
+**Requirements:** macOS, Xcode with command-line tools, Go 1.22+
+
+### Record a Trace
 
 ```bash
-go build -o swiftuice ./cmd/swiftuice
-```
-
-## Quick Start
-
-### For AI Agents (Recommended)
-
-```bash
-# Analyze a trace and get AI-actionable JSON
-swiftuice analyze -in exported/ -source ./MyApp -out analysis.json
-
-# Or pipe directly to an AI tool
-swiftuice analyze -in exported/ -stdout | your-ai-tool
-```
-
-### Manual Workflow
-
-```bash
-# 1. Record a trace
+# Record for 15 seconds while interacting with your app
 swiftuice record -app com.yourcompany.yourapp -time 15s -out trace.trace
-
-# 2. Export to parseable format
-swiftuice export -trace trace.trace -out exported/
-
-# 3. Generate AI report
-swiftuice analyze -in exported/ -source ./YourApp -out analysis.json
 ```
 
-## AI Integration
+Then tell Claude: "Analyze trace.trace for performance issues"
 
-The `analyze` command produces a structured JSON report designed for AI consumption:
+### How It Works
 
-```json
-{
-  "version": "1.0",
-  "summary": {
-    "performance_score": 65,
-    "health_status": "warning",
-    "issues_found": 3,
-    "critical_issues": 1
-  },
-  "issues": [
-    {
-      "id": "issue-1",
-      "type": "excessive_rerender",
-      "severity": "high",
-      "title": "Excessive re-renders in ItemRow",
-      "description": "View 'ItemRow' updated 47 times...",
-      "affected_nodes": ["ItemRow"],
-      "suggested_fixes": [
-        {
-          "approach": "Implement Equatable on View",
-          "code_before": "struct ItemRow: View { ... }",
-          "code_after": "struct ItemRow: View, Equatable { ... }",
-          "effort": "low",
-          "impact": "high"
-        }
-      ]
-    }
-  ],
-  "source_correlations": [
-    {
-      "trace_label": "ItemRow",
-      "file_path": "Views/ItemRow.swift",
-      "line_number": 45,
-      "confidence": 0.95
-    }
-  ],
-  "agent_instructions": {
-    "task_description": "SwiftUI performance issues detected...",
-    "priority": ["[high] Excessive re-renders in ItemRow"],
-    "constraints": ["Maintain existing functionality..."],
-    "success_criteria": ["Reduce view update counts..."]
-  }
-}
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        swiftuice                                │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│   record ──► export ──► analyze ──► Claude ──► Code Fixes      │
+│      │          │           │                                   │
+│      ▼          ▼           ▼                                   │
+│   .trace    XML/JSON    analysis.json                           │
+│                         (issues, fixes,                         │
+│                          source correlation)                    │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-### Using as a Claude Code Skill
-
-Create a skill that uses swiftuice:
-
-```bash
-# In your .claude/skills/swiftui-perf.md
-swiftuice analyze -in $TRACE_DIR -source $PROJECT_ROOT -stdout
-```
-
-The AI agent can then:
-1. Parse the JSON output
-2. Navigate to source files using `source_correlations`
-3. Apply fixes from `suggested_fixes` with code examples
-4. Verify improvements by re-running analysis
-
-### Output Fields
-
-| Field | Description |
-|-------|-------------|
-| `summary` | High-level metrics: score, issue counts |
-| `issues` | Detected problems with severity and affected nodes |
-| `issues[].suggested_fixes` | Concrete code changes with before/after examples |
-| `graph` | The cause-effect graph with source file mappings |
-| `source_correlations` | Links between trace data and Swift source files |
-| `recommendations` | General best-practice suggestions |
-| `agent_instructions` | Task description, priorities, constraints for AI |
-
-## Architecture
-
-| Package | Purpose |
-|---------|---------|
-| `cmd/swiftuice` | CLI entry point, subcommand routing |
-| `internal/xctrace` | Wrapper around `xcrun xctrace` |
-| `internal/export` | Trace → file export |
-| `internal/graph` | Node/Edge data structures |
-| `internal/analyze` | Parses exports, builds cause-effect graph |
-| `internal/issues` | Detects performance anti-patterns |
-| `internal/correlation` | Matches trace data to Swift source files |
-| `internal/suggestions` | Fix templates with code examples |
-| `internal/aioutput` | Generates structured JSON for AI agents |
+The tool builds a **Cause → State → View** relationship graph from Instruments trace data.
 
 ## Fix Suggestions
 
-The tool provides specific fix patterns for each issue type:
+The skill provides specific fix patterns for each issue type:
 
 ### Excessive Re-renders
 - **Equatable View**: Implement `Equatable` to control re-renders
@@ -186,9 +158,54 @@ The tool provides specific fix patterns for each issue type:
 - **Pass Primitives**: Extract only needed properties
 - **Focused Protocol**: Define minimal data requirements
 
-## Commands
+## Example Output
 
-### `swiftuice analyze` (AI-friendly)
+When analyzing a trace, you get structured JSON like this:
+
+```json
+{
+  "summary": {
+    "performance_score": 65,
+    "health_status": "warning",
+    "issues_found": 3,
+    "critical_issues": 1
+  },
+  "issues": [
+    {
+      "type": "excessive_rerender",
+      "severity": "high",
+      "title": "Excessive re-renders in ItemRow",
+      "suggested_fixes": [
+        {
+          "approach": "Implement Equatable on View",
+          "code_before": "struct ItemRow: View { ... }",
+          "code_after": "struct ItemRow: View, Equatable { ... }",
+          "effort": "low",
+          "impact": "high"
+        }
+      ]
+    }
+  ],
+  "source_correlations": [
+    {
+      "trace_label": "ItemRow",
+      "file_path": "Views/ItemRow.swift",
+      "line_number": 12,
+      "confidence": 0.95
+    }
+  ]
+}
+```
+
+---
+
+## CLI Reference
+
+For power users who want direct CLI access.
+
+### Commands
+
+#### `swiftuice analyze` (AI-friendly)
 
 ```bash
 swiftuice analyze -in <path> [options]
@@ -201,7 +218,7 @@ Options:
   -compact  Output compact JSON (for piping)
 ```
 
-### `swiftuice record`
+#### `swiftuice record`
 
 ```bash
 swiftuice record -app <bundle-id> [options]
@@ -214,7 +231,7 @@ Options:
   -out       Output .trace path (default: swiftui.trace)
 ```
 
-### `swiftuice export`
+#### `swiftuice export`
 
 ```bash
 swiftuice export -trace <path> [options]
@@ -225,7 +242,7 @@ Options:
   -format  Export format: auto|xml|json|csv (default: auto)
 ```
 
-### `swiftuice summarize` (human-readable)
+#### `swiftuice summarize` (human-readable)
 
 ```bash
 swiftuice summarize -in <path> [options]
@@ -236,26 +253,37 @@ Options:
   -dot   Graphviz .dot output (default: graph.dot)
 ```
 
-## Claude Code Plugin
-
-A complete Claude Code plugin is included for seamless AI integration:
+### Direct CLI Workflow
 
 ```bash
-# Install the plugin in Claude Code
-/plugin install github:greenstevester/swiftui-cause-effect-cli/claude-plugin
+# 1. Record a trace
+swiftuice record -app com.yourcompany.yourapp -time 15s -out trace.trace
+
+# 2. Export to parseable format
+swiftuice export -trace trace.trace -out exported/
+
+# 3. Generate AI report
+swiftuice analyze -in exported/ -source ./YourApp -out analysis.json
+
+# Or pipe directly
+swiftuice analyze -in exported/ -stdout | your-tool
 ```
 
-Or use locally:
-```bash
-claude --plugin-dir /path/to/swiftui-cause-effect-cli/claude-plugin
-```
+---
 
-The plugin provides:
-- **Skill: swiftuice-analyze** - Triggers automatically for SwiftUI performance questions
-- **Command: /analyze-swiftui** - Quick analysis of traces in current project
-- **Reference docs** - Detailed fix patterns and issue documentation
+## Architecture
 
-See [`claude-plugin/README.md`](./claude-plugin/README.md) for full documentation.
+| Package | Purpose |
+|---------|---------|
+| `cmd/swiftuice` | CLI entry point, subcommand routing |
+| `internal/xctrace` | Wrapper around `xcrun xctrace` |
+| `internal/export` | Trace → file export |
+| `internal/graph` | Node/Edge data structures |
+| `internal/analyze` | Parses exports, builds cause-effect graph |
+| `internal/issues` | Detects performance anti-patterns |
+| `internal/correlation` | Matches trace data to Swift source files |
+| `internal/suggestions` | Fix templates with code examples |
+| `internal/aioutput` | Generates structured JSON for AI agents |
 
 ## Development
 
@@ -275,10 +303,10 @@ task lint
 
 ## Design Principles
 
-- **AI-First**: Output is designed for machine consumption, not just humans
+- **AI-First**: Output designed for Claude and other AI tools
 - **Actionable**: Every issue includes concrete fix suggestions with code
-- **Correlatable**: Trace data is linked to source files where possible
-- **Standalone**: No MCP server required - works in CI, locally, or as a skill
+- **Correlatable**: Trace data linked to source files where possible
+- **Standalone**: Works in CI, locally, or as a Claude Code skill
 
 ## License
 

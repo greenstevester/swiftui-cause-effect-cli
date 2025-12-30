@@ -14,31 +14,23 @@ No setup required for code review. Trace recording guided step-by-step.
 
 ## Installation
 
-### Option 1: Install from GitHub (Recommended)
+### Option 1: Plugin Marketplace (Recommended)
 
 ```bash
-# In Claude Code
-/plugin install github:greenstevester/swiftui-cause-effect-cli/claude-plugin
+/plugin marketplace add greenstevester/swiftui-cause-effect-cli
+/plugin install swiftuice-analyze@greenstevester-swiftui-cause-effect-cli
 ```
 
-### Option 2: Local Installation
-
-1. Clone the repository:
+Or use the interactive installer:
 ```bash
-git clone https://github.com/greenstevester/swiftui-cause-effect-cli.git
+/plugin
 ```
+Then navigate to **Discover** tab and search for "swiftuice".
 
-2. Install the plugin locally:
+### Option 2: Project-Level (for teams)
+
 ```bash
-# In Claude Code, from your project directory
-claude --plugin-dir /path/to/swiftui-cause-effect-cli/claude-plugin
-```
-
-### Option 3: Copy to User Skills
-
-Copy the skill to your user skills directory:
-```bash
-cp -r claude-plugin/skills/swiftuice-analyze ~/.claude/skills/
+/plugin install swiftuice-analyze@greenstevester-swiftui-cause-effect-cli --scope project
 ```
 
 ## Prerequisites
